@@ -20,14 +20,19 @@ pipeline {
             }
         }
 
-        stage('Start Service') {
-            steps {
-                sh '''
-                    JAR_FILE=$(ls target/*.jar | head -n 1)
-                    nohup java -jar $JAR_FILE --server.port=8081 > app.log 2>&1 &
-                    echo $! > app.pid
-                '''
-            }
-        }
+
+           stage('Start Service') {
+               steps {
+                   sh '''
+                       JAR_FILE=$(ls target/*.jar | head -n 1)
+                       echo "Attempting to start: $JAR_FILE"
+                       # Use setsid to detach the process completely
+                       setsid java -jar $JAR_FILE --server.port=8081 > app.log 2>&1 &
+                       # No disown needed here, setsid handles the detachment.
+                       echo $! > app.pid
+                   '''
+               }
+           }
+
     }
 }
